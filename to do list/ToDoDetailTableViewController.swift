@@ -15,18 +15,20 @@ class ToDoDetailTableViewController: UITableViewController {
     @IBOutlet weak var datePicker: UIDatePicker!
     @IBOutlet weak var noteView: UITextView!
     
-    var toDoList: String!
+    var toDoList: toDoItems!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         if toDoList == nil{
-            toDoList = ""
+            toDoList = toDoItems(date: Date(), name: "", notes: "")
         }
-        nameField.text = toDoList
+        nameField.text = toDoList.name
+        datePicker.date = toDoList.date
+        noteView.text = toDoList.notes
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        toDoList = nameField.text
+        toDoList = toDoItems(date: datePicker.date, name: nameField.text!, notes: noteView.text)
     }
     @IBAction func cancelButtonPressed(_ sender: UIBarButtonItem) {
         let isPresentingInAddMode = presentingViewController is UINavigationController
