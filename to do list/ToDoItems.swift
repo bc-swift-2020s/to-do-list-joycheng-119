@@ -9,8 +9,9 @@
 import Foundation
 
 
-struct toDoItems {
+struct toDoItems: Codable {
       var date: Date
       var name: String
       var notes: String
+      var reminderSet: Bool
   }

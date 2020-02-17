@@ -8,6 +8,8 @@
 
 import UIKit
 
+
+
 class ToDoListViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
@@ -21,7 +23,38 @@ class ToDoListViewController: UIViewController {
         
         tableView.delegate = self
         tableView.dataSource = self
+        loadData()
     }
+    func loadData () {
+               let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+               let documentURL = directoryURL.appendingPathComponent("todos").appendingPathComponent("json")
+               
+               guard let data = try? Data(contentsOf: documentURL)else{
+                   return
+               }
+               let jsonDecoder = JSONDecoder()
+               do {
+                   toDoItem = try jsonDecoder.decode(Array<toDoItems>.self, from: data)
+                   tableView.reloadData()
+               }catch{
+                   print("ERROR!\(error.localizedDescription)")
+               }
+               
+           }
+    
+    
+    func saveData (){
+        let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let documentURL = directoryURL.appendingPathComponent("todos").appendingPathComponent("json")
+        let jsonEncoder = JSONEncoder()
+        let data = try? jsonEncoder.encode(toDoItem)
+        do {
+            try data?.write(to: documentURL, options: .noFileProtection)
+        }catch{
+            print("ERROR!\(error.localizedDescription)")
+        }
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShowDetail"{
             let destination = segue.destination as! ToDoDetailTableViewController
@@ -45,7 +78,9 @@ class ToDoListViewController: UIViewController {
             tableView.insertRows(at: [newIndexPath], with: .bottom)
             tableView.scrollToRow(at: newIndexPath, at: .bottom
                 , animated: true)
+           
         }
+         saveData()
 }
     @IBAction func editButtonPressed(_ sender: UIBarButtonItem) {
         if tableView.isEditing {
@@ -79,12 +114,14 @@ extension ToDoListViewController: UITableViewDataSource, UITableViewDelegate {
         if editingStyle == .delete{
             toDoItem.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
+            saveData()
         }
     }
     func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         let itemToMove = toDoItem[sourceIndexPath.row]
         toDoItem.remove(at: sourceIndexPath.row)
         toDoItem.insert(itemToMove, at: destinationIndexPath.row)
+        saveData()
     }
     }
 
