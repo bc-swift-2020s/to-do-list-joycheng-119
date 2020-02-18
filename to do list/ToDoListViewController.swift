@@ -11,12 +11,12 @@ import UIKit
 
 
 class ToDoListViewController: UIViewController {
-
+    
     @IBOutlet weak var tableView: UITableView!
-   
+    
     @IBOutlet weak var addBarButton: UIBarButtonItem!
     
-     var toDoItem : [toDoItems] =  []
+    var toDoItem : [toDoItems] =  []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,26 +26,26 @@ class ToDoListViewController: UIViewController {
         loadData()
     }
     func loadData () {
-               let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-               let documentURL = directoryURL.appendingPathComponent("todos").appendingPathComponent("json")
-               
-               guard let data = try? Data(contentsOf: documentURL)else{
-                   return
-               }
-               let jsonDecoder = JSONDecoder()
-               do {
-                   toDoItem = try jsonDecoder.decode(Array<toDoItems>.self, from: data)
-                   tableView.reloadData()
-               }catch{
-                   print("ERROR!\(error.localizedDescription)")
-               }
-               
-           }
+        let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let documentURL = directoryURL.appendingPathComponent("todos").appendingPathExtension("json")
+        
+        guard let data = try? Data(contentsOf: documentURL) else {
+            return
+        }
+        let jsonDecoder = JSONDecoder()
+        do {
+            toDoItem = try jsonDecoder.decode(Array<toDoItems>.self, from: data)
+            tableView.reloadData()
+        }catch{
+            print("ERROR!\(error.localizedDescription)")
+        }
+        
+    }
     
     
     func saveData (){
         let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let documentURL = directoryURL.appendingPathComponent("todos").appendingPathComponent("json")
+        let documentURL = directoryURL.appendingPathComponent("todos").appendingPathExtension("json")
         let jsonEncoder = JSONEncoder()
         let data = try? jsonEncoder.encode(toDoItem)
         do {
@@ -68,7 +68,7 @@ class ToDoListViewController: UIViewController {
     }
     
     @IBAction func unwindFromDetail(segue: UIStoryboardSegue){
-    let source = segue.source as! ToDoDetailTableViewController
+        let source = segue.source as! ToDoDetailTableViewController
         if let selectedIndexPath = tableView.indexPathForSelectedRow{
             toDoItem[selectedIndexPath.row] = source.toDoList
             tableView.reloadRows(at: [selectedIndexPath], with: .automatic)
@@ -78,13 +78,14 @@ class ToDoListViewController: UIViewController {
             tableView.insertRows(at: [newIndexPath], with: .bottom)
             tableView.scrollToRow(at: newIndexPath, at: .bottom
                 , animated: true)
-           
+            
         }
-         saveData()
-}
+        saveData()
+    }
+    
     @IBAction func editButtonPressed(_ sender: UIBarButtonItem) {
         if tableView.isEditing {
-             tableView.setEditing(false, animated: true)
+            tableView.setEditing(false, animated: true)
             sender.title = "Edit"
             addBarButton.isEnabled = true
             
@@ -105,7 +106,7 @@ extension ToDoListViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         print("cellForRowAt was just called for indexPath row = \(indexPath.row) which is cell containing \(toDoItem[indexPath.row])")
-       let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = toDoItem[indexPath.row].name
         return cell
     }
@@ -123,7 +124,7 @@ extension ToDoListViewController: UITableViewDataSource, UITableViewDelegate {
         toDoItem.insert(itemToMove, at: destinationIndexPath.row)
         saveData()
     }
-    }
+}
 
 
 
