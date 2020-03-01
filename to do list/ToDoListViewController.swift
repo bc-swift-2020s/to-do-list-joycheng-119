@@ -7,13 +7,13 @@
 //
 
 import UIKit
+import UserNotifications
 
 
 
 class ToDoListViewController: UIViewController {
     
     @IBOutlet weak var tableView: UITableView!
-    
     @IBOutlet weak var addBarButton: UIBarButtonItem!
     
     var toDoItem : [toDoItems] =  []
@@ -24,7 +24,66 @@ class ToDoListViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         loadData()
+        authorizeLocalNotifications()
     }
+    
+    func authorizeLocalNotifications() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
+            guard error == nil else{
+                print("error: \(error!.localizedDescription)")
+                return
+            }
+            if granted{
+                print("notification authorization granted!")
+            }else{
+                print("the user has denied notifications")
+                //TODO: put alert here tell users what to do
+            }
+        }
+    }
+    func setNotifications(){
+        guard toDoItem.count > 0 else{
+            return
+        }
+        // remove all notifications
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+        for i in 0...toDoItem.count-1{
+            if toDoItem[i].reminderSet{
+                let toDoItems = toDoItem[i]
+                toDoItem[i].notificationID = setCalendarNotifications(title: toDoItems.name, subtitle: "", body: toDoItems.notes
+                    , badgeNumber: nil, sound: .default, date: toDoItems.date)
+            }
+        }
+    }
+    func setCalendarNotifications(title: String, subtitle: String, body: String, badgeNumber: NSNumber?, sound: UNNotificationSound?, date: Date) -> String{
+        //create content:
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.subtitle = subtitle
+        content.body = body
+        content.sound = sound
+        content.badge = badgeNumber
+        
+        //create trigger
+        var dateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+        dateComponents.second = 00
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+        
+        //create request
+        let notificationID = UUID().uuidString
+        let request = UNNotificationRequest(identifier: notificationID, content: content, trigger: trigger)
+         
+        //register request with the notification center
+        UNUserNotificationCenter.current().add(request) { (error) in
+            if let error = error{
+                print("Error: \(error.localizedDescription), adding notifications went wrong!")
+            }else{
+                print("notification scheduled \(notificationID), title: \(content.title)")
+            }
+        }
+        return notificationID
+    }
+    
     func loadData () {
         let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let documentURL = directoryURL.appendingPathComponent("todos").appendingPathExtension("json")
@@ -53,6 +112,7 @@ class ToDoListViewController: UIViewController {
         }catch{
             print("ERROR!\(error.localizedDescription)")
         }
+        setNotifications()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
