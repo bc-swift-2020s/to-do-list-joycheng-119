@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import UserNotifications
 
 private let dateFormatter: DateFormatter = {
     print("i just created a dateformatter!")
@@ -37,8 +38,20 @@ class ToDoDetailTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let notificationCenter = NotificationCenter.default
+        notificationCenter.addObserver(self, selector: #selector(appActiveNotification), name: UIApplication.didBecomeActiveNotification, object: nil)
+        
+        
+        
+        let tap = UITapGestureRecognizer(target: self.view, action: #selector(UIView.endEditing(_:)))
+        tap.cancelsTouchesInView = false
+        self.view.addGestureRecognizer(tap)
+        
+        nameField.delegate = self
         if toDoList == nil{
-            toDoList = toDoItems(date: Date().addingTimeInterval(24*60*60), name: "", notes: "", reminderSet: false)
+            toDoList = toDoItems(date: Date().addingTimeInterval(24*60*60), name: "", notes: "", reminderSet: false, completed: false)
+            nameField.becomeFirstResponder()
         }
 //        nameField.text = toDoList.name
 //        datePicker.date = toDoList.date
@@ -52,6 +65,10 @@ class ToDoDetailTableViewController: UITableViewController {
 //        }
         updateUserInterface()
     }
+    @objc func appActiveNotification () {
+     print("This app just came to the foreground!")
+        updateReminderSwitch()
+    }
     func updateUserInterface(){
         nameField.text = toDoList.name
         datePicker.date = toDoList.date
@@ -59,11 +76,38 @@ class ToDoDetailTableViewController: UITableViewController {
         reminderSwitch.isOn = toDoList.reminderSet
         dateLabel.textColor = (reminderSwitch.isOn ? .black :.gray)
         dateLabel.text = dateFormatter.string(from: toDoList.date)
+        enableDisabledButton(text: nameField.text!)
+        updateReminderSwitch()
+    }
+    func updateReminderSwitch(){
+        localNotificationManager.authorizeLocalNotifications { (authorized) in
+            DispatchQueue.main.async {
+                if !authorized && self.reminderSwitch.isOn{
+                    self.oneButtonAlert(title: "User has not yet allowed notification", message: "if you want to receive alerts, please go to settings")
+                    self.reminderSwitch.isOn = false
+                    
+                }
+                self.view.endEditing(true)
+                self.dateLabel.textColor = (self.reminderSwitch.isOn ? .black :.gray)
+                self.tableView.beginUpdates()
+                self.tableView.endUpdates()
+            }
+            
+        }
+        
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        toDoList = toDoItems(date: datePicker.date, name: nameField.text!, notes: noteView.text, reminderSet: reminderSwitch.isOn)
+        toDoList = toDoItems(date: datePicker.date, name: nameField.text!, notes: noteView.text, reminderSet: reminderSwitch.isOn,  completed: toDoList.completed)
     }
+    func enableDisabledButton(text: String){
+        if text.count > 0{
+                   saveBarButton.isEnabled = true
+               }else{
+                   saveBarButton.isEnabled = false
+               }
+    }
+    
     @IBAction func cancelButtonPressed(_ sender: UIBarButtonItem) {
         let isPresentingInAddMode = presentingViewController is UINavigationController
         if isPresentingInAddMode{
@@ -74,13 +118,16 @@ class ToDoDetailTableViewController: UITableViewController {
     }
     
     @IBAction func reminderSwitchChanged(_ sender: UISwitch) {
-         dateLabel.textColor = (reminderSwitch.isOn ? .black :.gray)
-        tableView.beginUpdates()
-        tableView.endUpdates()
+        updateReminderSwitch()
     }
     
     @IBAction func datePickerChanged(_ sender: UIDatePicker) {
+        self.view.endEditing(true)
         dateLabel.text = dateFormatter.string(from: sender.date)
+    }
+    
+    @IBAction func textFieldEditingChanged(_ sender: UITextField) {
+        enableDisabledButton(text: sender.text!)
     }
 }
 
@@ -98,3 +145,10 @@ extension ToDoDetailTableViewController{
 }
     
 
+extension ToDoDetailTableViewController: UITextFieldDelegate{
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        noteView.becomeFirstResponder()
+        return true
+    }
+    
+}
