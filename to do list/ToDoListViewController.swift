@@ -28,7 +28,7 @@ class ToDoListViewController: UIViewController {
             self.tableView.reloadData()
         }
        
-        localNotificationManager.authorizeLocalNotifications(completed: self)
+        localNotificationManager.authorizeLocalNotifications(viewController: self)
     }
     
     
@@ -80,9 +80,9 @@ class ToDoListViewController: UIViewController {
     
 }
 
-extension ToDoListViewController: UITableViewDataSource, UITableViewDelegate, ListTabelViewCellDelegate {
+extension ToDoListViewController: UITableViewDataSource, UITableViewDelegate, ListTableViewCellDelegate {
     
-    func checkBoxToggle(sender: ListTabelViewCellDelegate) {
+    func checkBoxToggle(sender: TableViewCell) {
         if let selectedIndexPath = tableView.indexPath(for: sender as! UITableViewCell){
             toDoItems.itemArray[selectedIndexPath.row].completed = !toDoItems.itemArray[selectedIndexPath.row].completed
             tableView.reloadRows(at: [selectedIndexPath], with: .automatic )

@@ -12,23 +12,7 @@ import UIKit
 
 struct localNotificationManager {
     
-    static func authorizeLocalNotifications(completed: @escaping (Bool) -> () ) {
-           UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
-               guard error == nil else{
-                   print("error: \(error!.localizedDescription)")
-                completed(false)
-                   return
-               }
-               if granted{
-                   print("notification authorization granted!")
-               }else{
-                   print("the user has denied notifications")
-            }
-           }
-       }
-    
-    
-    static func isAuthorized(viewController: UIViewController) {
+    static func authorizeLocalNotifications(viewController: UIViewController) {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
             guard error == nil else{
                 print("error: \(error!.localizedDescription)")
@@ -41,6 +25,22 @@ struct localNotificationManager {
              DispatchQueue.main .async {
              viewController.oneButtonAlert(title: "User has not yet allowed notification", message: "if you want to receive alerts, please go to settings")
              }
+         }
+        }
+    }
+    
+    
+    static func isAuthorized(completed: @escaping (Bool) -> () ) {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
+            guard error == nil else{
+                print("error: \(error!.localizedDescription)")
+             completed(false)
+                return
+            }
+            if granted{
+                print("notification authorization granted!")
+            }else{
+                print("the user has denied notifications")
          }
         }
     }

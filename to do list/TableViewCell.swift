@@ -8,7 +8,7 @@
 
 import UIKit
 protocol ListTableViewCellDelegate: class {
-    func checkBoxToggle(sender: ListTableViewCellDelegate)
+    func checkBoxToggle(sender: TableViewCell)
 }
 class TableViewCell: UITableViewCell {
     

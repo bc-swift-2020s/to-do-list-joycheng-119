@@ -79,23 +79,42 @@ class ToDoDetailTableViewController: UITableViewController {
         enableDisabledButton(text: nameField.text!)
         updateReminderSwitch()
     }
+    
+    
+    
     func updateReminderSwitch(){
-        localNotificationManager.authorizeLocalNotifications { (authorized) in
+        localNotificationManager.isAuthorized { (authorized) in
             DispatchQueue.main.async {
                 if !authorized && self.reminderSwitch.isOn{
-                    self.oneButtonAlert(title: "User has not yet allowed notification", message: "if you want to receive alerts, please go to settings")
+                    self.oneButtonAlert(title: "User has not allowed notification", message: "To receive alerts for reminders, open the Setting APP, select To Do List > Notification > Allow Notification.")
                     self.reminderSwitch.isOn = false
-                    
-                }
+                           }
                 self.view.endEditing(true)
-                self.dateLabel.textColor = (self.reminderSwitch.isOn ? .black :.gray)
+                self.dateLabel.textColor = (self.reminderSwitch.isOn ? .black : .gray)
                 self.tableView.beginUpdates()
                 self.tableView.endUpdates()
             }
-            
+           
         }
-        
     }
+    
+//    func updateReminderSwitch(){
+//        localNotificationManager.isAuthorized(completed: { (authorized) in
+//            DispatchQueue.main.async {
+//                if !authorized && self.reminderSwitch.isOn{
+//                    self.oneButtonAlert(title: "User has not yet allowed notification", message: "if you want to receive alerts, please go to settings")
+//                    self.reminderSwitch.isOn = false
+//
+//                }
+//                self.view.endEditing(true)
+//                self.dateLabel.textColor = (self.reminderSwitch.isOn ? .black :.gray)
+//                self.tableView.beginUpdates()
+//                self.tableView.endUpdates()
+//            }
+//
+//        }
+//
+//    }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         toDoList = toDoItems(date: datePicker.date, name: nameField.text!, notes: noteView.text, reminderSet: reminderSwitch.isOn,  completed: toDoList.completed)
